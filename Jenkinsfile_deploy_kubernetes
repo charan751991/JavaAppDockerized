@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'maven'
         // Ensure 'sonar' tool is installed globally in Jenkins
         // This should match the name configured in Global Tool Configuration
         // and should point to the location of the SonarQube Scanner installation
@@ -10,9 +10,9 @@ pipeline {
     }
     
     environment {
-        SONAR_HOST_URL = 'http://34.207.215.60:9000' // Update with your SonarQube server URL
+        SONAR_HOST_URL = 'http://3.215.22.130:9000' // Update with your SonarQube server URL
         SONAR_LOGIN = credentials('sonar_token') // Credentials ID for SonarQube access token
-        ECR_REGISTRY = "287489840086.dkr.ecr.ap-southeast-1.amazonaws.com/ecr_repo"
+        ECR_REGISTRY = "544955504662.dkr.ecr.us-east-1.amazonaws.com/myecr"
         // Set the name of your Docker image
         dockerImageTag = "${env.BUILD_NUMBER}"
     }
@@ -21,7 +21,7 @@ pipeline {
         stage('Git Checkout') {
             steps {
                 // Correct syntax for Git checkout
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/venugopalsgnew/JavaAppDockerized.git']])
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsid: "GITHUB_TOKEN"l: 'https://github.com/charan751991/JavaAppDockerized.git']])
             } 
         }
         
@@ -55,7 +55,7 @@ pipeline {
             steps {
                 script {
                     // Log in to ECR
-                    sh 'aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 287489840086.dkr.ecr.ap-southeast-1.amazonaws.com'
+                    sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 544955504662.dkr.ecr.us-east-1.amazonaws.com'
                     // Push Docker image to ECR
                     sh "docker push ${ECR_REGISTRY}:${dockerImageTag}"
                 }
@@ -64,8 +64,8 @@ pipeline {
 
         stage('Update deployment.yaml') {
             environment {
-               GIT_REPO_NAME = "venugopalsgnew/JavaAppDockerized.git"
-               GIT_USER_NAME = "venugopalsgnew"
+               GIT_REPO_NAME = "charan751991/JavaAppDockerized.git"
+               GIT_USER_NAME = "charan751991"
              }
             steps {
                 withCredentials([string(credentialsId: 'git-credentials-id', variable: 'GITHUB_TOKEN')]) {
@@ -77,8 +77,8 @@ pipeline {
                       git pull
                       sed -i \"s|${ECR_REGISTRY}:.*|${ECR_REGISTRY}:${dockerImageTag}|\" deploy.yaml
                       pwd
-                      git config user.email "venugopal.aix@gmail.com"
-                      git config user.name "venu"
+                      git config user.email "muppalacharanteja@gmail.com"
+                      git config user.name "charan"
                       git add deploy.yaml
                       git commit -m "Update image in deploy.yaml"
                       git push https://${GITHUB_TOKEN}@github.com/${GIT_REPO_NAME} HEAD:master
@@ -90,7 +90,7 @@ pipeline {
         stage('Deploy updated manifest to k8 Cluster') {
             steps {
                 script {
-                  kubeconfig(credentialsId: 'KUBE_CONFIG', serverUrl: 'https://172.31.33.136:6443') {
+                  kubeconfig(credentialsId: 'KUBE_CONFIG', serverUrl: 'https://172.31.73.189:6443') {
                     sh 'kubectl apply -f deploy.yaml'
                 }
 
