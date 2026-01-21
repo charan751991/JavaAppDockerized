@@ -21,7 +21,7 @@ pipeline {
         stage('Git Checkout') {
             steps {
                 // Correct syntax for Git checkout
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsid: "GITHUB_TOKEN"l: 'https://github.com/charan751991/JavaAppDockerized.git']])
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsid: 'GITHUB_TOKEN', url: 'https://github.com/charan751991/JavaAppDockerized.git']])
             } 
         }
         
